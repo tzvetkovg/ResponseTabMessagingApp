@@ -18,11 +18,14 @@ package responseTab;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import responseTab.domain.Person;
+import responseTab.domain.PersonWrapper;
 import responseTab.rabbitmq.Producer;
 import responseTab.rabbitmq.Receiver;
 
@@ -40,18 +43,18 @@ public class ApplicationTest {
   private Producer mProducer;
 
   @Resource
-  private RabbitTemplate rabbitTemplate;
+  private RabbitTemplate mRabbitTemplate;
 
   @Resource
   private Receiver mReceiver;
 
   @Test
   public void test() throws Exception {
-    Person person = new Person(1l,"+441619109020");
-    List<Person> personList = new ArrayList<>();
-    personList.add(person);
-    rabbitTemplate.convertAndSend(Application.RESPONSE_TAB_QUEUE, personList);
-    mReceiver.getLatch().await(5000, TimeUnit.MILLISECONDS);
+    Person person = new Person(1l,"+4414222");
+    PersonWrapper personWrapperTest = new PersonWrapper();
+    personWrapperTest.getPeople().add(person);
+    mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_QUEUE, personWrapperTest);
+    mReceiver.getLatch().await(10, TimeUnit.SECONDS);
   }
 
 
