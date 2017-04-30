@@ -1,5 +1,6 @@
 package responseTab.rabbitmq;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import responseTab.Application;
 import responseTab.domain.PersonWrapper;
 import responseTab.domain.Person;
@@ -11,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -37,6 +39,6 @@ public class Producer implements CommandLineRunner {
         personWrapper.getPeople().add(person2);
         rabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
         receiver.getLatch().await(10, TimeUnit.SECONDS);
-        context.close();
+        //context.close();
     }
 }

@@ -48,7 +48,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
-        <finalName>MessagingApp</finalName>
+        <finalName>ResponseTabMessagingApp</finalName>
     </build>
 
 </project>
