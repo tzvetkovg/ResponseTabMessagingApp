@@ -32,13 +32,21 @@ public class Producer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("Sending message");
+/*        ObjectMapper mapper = new ObjectMapper();
         Person person = new Person(1l,"+4411111");
         Person person2 = new Person(2l,"+35922222");
         PersonWrapper personWrapper = new PersonWrapper();
         personWrapper.getPeople().add(person);
         personWrapper.getPeople().add(person2);
+        //Object to JSON in file
+        mapper.writeValue(new File("C:\\ResponseTabMessagingApp\\user.json"), personWrapper);*/
+ /*       Person person = new Person(1l,"+4411111");
+        Person person2 = new Person(2l,"+35922222");
+        PersonWrapper personWrapper = new PersonWrapper();
+        personWrapper.getPeople().add(person);
+        personWrapper.getPeople().add(person2);
         rabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
-        receiver.getLatch().await(10, TimeUnit.SECONDS);
+        receiver.getLatch().await(10, TimeUnit.SECONDS);*/
         //context.close();
     }
 }

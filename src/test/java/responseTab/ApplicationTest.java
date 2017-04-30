@@ -16,31 +16,29 @@
 
 package responseTab;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import responseTab.domain.Person;
 import responseTab.domain.PersonWrapper;
-import responseTab.rabbitmq.Producer;
 import responseTab.rabbitmq.Receiver;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertNull;
 
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ApplicationTest {
 
-  @MockBean
-  private Producer mProducer;
+  private CachingConnectionFactory connectionFactory;
 
   @Resource
   private RabbitTemplate mRabbitTemplate;
@@ -48,13 +46,57 @@ public class ApplicationTest {
   @Resource
   private Receiver mReceiver;
 
+  @Rule
+  public TestName testName = new TestName();
+
+  private RabbitTemplate template;
+
+/*
+  @Rule
+  public ExpectedException inetAddressExceptionRule = ExpectedException.none();
+
+  @Before
+  public void create() {
+    this.connectionFactory = new CachingConnectionFactory();
+    connectionFactory.setHost("localhost");
+    connectionFactory.setPort(5672);
+    connectionFactory.setPublisherReturns(true);
+    connectionFactory.setUsername("guest");
+    connectionFactory.setPassword("guest");
+    mRabbitTemplate = new RabbitTemplate(connectionFactory);
+    //mRabbitTemplate.setSendConnectionFactorySelectorExpression(new LiteralExpression("foo"));
+    BeanFactory bf = mock(BeanFactory.class);
+    ConnectionFactory cf = mock(ConnectionFactory.class);
+    mRabbitTemplate.setBeanFactory(bf);
+    //template.setbean.setBeanName(this.testName.getMethodName() + "RabbitTemplate");
+  }
+*/
+
+
+
   @Test
   public void test() throws Exception {
+    Person person = new Person(1l,"+4411111");
+    Person person2 = new Person(2l,"+35922222");
+    PersonWrapper personWrapper = new PersonWrapper();
+    personWrapper.getPeople().add(person);
+    //mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    mReceiver.getLatch().await(10, TimeUnit.SECONDS);
+  }
+
+  @Test
+  public void testError() throws InterruptedException {
     Person person = new Person(1l,"+4414222");
     PersonWrapper personWrapperTest = new PersonWrapper();
     personWrapperTest.getPeople().add(person);
     mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapperTest);
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.receiveAndConvert(Application.RESPONSE_TAB_QUEUE);
     mReceiver.getLatch().await(10, TimeUnit.SECONDS);
+    //assertNotNull(out);
+    //assertEquals("nonblock", out);
+    assertNull(mRabbitTemplate.receive(Application.RESPONSE_TAB_QUEUE));
+
   }
 
 
