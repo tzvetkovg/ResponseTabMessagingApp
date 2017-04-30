@@ -34,14 +34,14 @@ public class Receiver {
   private CountDownLatch latch = new CountDownLatch(1);
 
   @RabbitListener(queues = Application.RESPONSE_TAB_QUEUE)
-  public List<Person> receiveMessage(@Payload PersonWrapper aPersonWrapper,@Header(AmqpHeaders.CHANNEL) Channel channel,
-          @Header(AmqpHeaders.DELIVERY_TAG) Long deliveryTag) throws IOException {
+  public PersonWrapper receiveMessage(@Payload PersonWrapper aPersonWrapper,@Header(AmqpHeaders.CHANNEL) Channel aChannel,
+          @Header(AmqpHeaders.DELIVERY_TAG) Long aDeliveryTag) throws IOException {
     log.info("receiving message");
     Map<Integer,List<Person>> peopleGroupedByCountryTelCode = aPersonWrapper.getPeople().stream().collect(Collectors.groupingBy(this::processItem));
     printResult(peopleGroupedByCountryTelCode);
-    channel.basicAck(deliveryTag,true);
+    aChannel.basicAck(aDeliveryTag,true);
     latch.countDown();
-    return aPersonWrapper.getPeople();
+    return aPersonWrapper;
   }
 
   private void printResult(Map<Integer, List<Person>> aPeopleGroupedByCountryTelCode) {

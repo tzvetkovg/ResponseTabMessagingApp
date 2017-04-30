@@ -6,6 +6,7 @@
     <groupId>com.responsetab</groupId>
     <artifactId>messageApp</artifactId>
     <version>0.1.0</version>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -47,6 +48,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>MessagingApp</finalName>
     </build>
 
 </project>

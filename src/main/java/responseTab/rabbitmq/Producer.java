@@ -27,8 +27,7 @@ public class Producer implements CommandLineRunner {
     @Autowired
     private ConfigurableApplicationContext context;
 
-
-   // @Override
+    @Override
     public void run(String... args) throws Exception {
         log.info("Sending message");
         Person person = new Person(1l,"+4411111");
@@ -36,7 +35,7 @@ public class Producer implements CommandLineRunner {
         PersonWrapper personWrapper = new PersonWrapper();
         personWrapper.getPeople().add(person);
         personWrapper.getPeople().add(person2);
-        rabbitTemplate.convertAndSend(Application.RESPONSE_TAB_QUEUE, personWrapper);
+        rabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
         receiver.getLatch().await(10, TimeUnit.SECONDS);
         context.close();
     }

@@ -22,9 +22,8 @@ public class Application implements RabbitListenerConfigurer {
   public final static String RESPONSE_TAB_ROUTING_KEY = "RESPONSE_TAB_ROUTING_KEY";
   public final static String RESPONSE_TAB_EXCHANGE = "RESPONSE_TAB_ROUTING_KEY";
 
-
   @Bean
-  public TopicExchange exChange() {
+  public TopicExchange exchange() {
     return new TopicExchange(RESPONSE_TAB_EXCHANGE);
   }
 
@@ -34,8 +33,8 @@ public class Application implements RabbitListenerConfigurer {
   }
 
   @Bean
-  public Binding declareBindingSpecific() {
-    return BindingBuilder.bind(queue()).to(exChange()).with(RESPONSE_TAB_ROUTING_KEY);
+  public Binding declareBinding() {
+    return BindingBuilder.bind(queue()).to(exchange()).with(RESPONSE_TAB_ROUTING_KEY);
   }
 
   @Bean
@@ -58,7 +57,7 @@ public class Application implements RabbitListenerConfigurer {
   }
 
   @Bean
-  PhoneNumberUtil phoneNumberUtil() {
+  public PhoneNumberUtil phoneNumberUtil() {
     return PhoneNumberUtil.getInstance();
   }
 

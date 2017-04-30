@@ -53,7 +53,7 @@ public class ApplicationTest {
     Person person = new Person(1l,"+4414222");
     PersonWrapper personWrapperTest = new PersonWrapper();
     personWrapperTest.getPeople().add(person);
-    mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_QUEUE, personWrapperTest);
+    mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapperTest);
     mReceiver.getLatch().await(10, TimeUnit.SECONDS);
   }
 
