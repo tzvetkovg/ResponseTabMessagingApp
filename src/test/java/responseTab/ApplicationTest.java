@@ -16,21 +16,29 @@
 
 package responseTab;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import mockit.Expectations;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import responseTab.domain.Person;
 import responseTab.domain.PersonWrapper;
+import responseTab.rabbitmq.RabbitErrorHandler;
 import responseTab.rabbitmq.Receiver;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 
@@ -45,9 +53,6 @@ public class ApplicationTest {
 
   @Resource
   private Receiver mReceiver;
-
-  @Rule
-  public TestName testName = new TestName();
 
   private RabbitTemplate template;
 
@@ -72,32 +77,76 @@ public class ApplicationTest {
   }
 */
 
-
-
   @Test
   public void test() throws Exception {
-    Person person = new Person(1l,"+4411111");
-    Person person2 = new Person(2l,"+35922222");
+    Person person = new Person(1l,"+447428171589");
+    Person person2 = new Person(2l,"+35988611153");
     PersonWrapper personWrapper = new PersonWrapper();
     personWrapper.getPeople().add(person);
-    //mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    personWrapper.getPeople().add(person2);
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    mReceiver.getLatch().await(10, TimeUnit.SECONDS);
+    assertEquals(2,out.getPeople().size());
+  }
+
+  @Test
+  public void testEmptyList() {
+    PersonWrapper personWrapper = new PersonWrapper();
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    assertEquals(0,out.getPeople().size());
+  }
+
+  @Test
+  public void testInvalidTelephoneFormat() throws Exception {
+    final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
+    Person person = new Person(null,"+447428171589");
+    Person person2 = new Person(2l,"+35988611153");
+    PersonWrapper personWrapper = new PersonWrapper();
+    personWrapper.getPeople().add(person);
+    personWrapper.getPeople().add(person2);
+    new Expectations(logger) {{
+      logger.error("Invalid data format");
+      times = 1;
+    }};
     PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
     mReceiver.getLatch().await(10, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testError() throws InterruptedException {
-    Person person = new Person(1l,"+4414222");
-    PersonWrapper personWrapperTest = new PersonWrapper();
-    personWrapperTest.getPeople().add(person);
-    mRabbitTemplate.convertAndSend(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapperTest);
-    PersonWrapper out = (PersonWrapper) mRabbitTemplate.receiveAndConvert(Application.RESPONSE_TAB_QUEUE);
+  public void testNullID() throws Exception {
+    Person person = new Person(null,"+447428171589");
+    PersonWrapper personWrapper = new PersonWrapper();
+    personWrapper.getPeople().add(person);
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+    assertEquals(null,personWrapper.getPeople().get(0).getId());
     mReceiver.getLatch().await(10, TimeUnit.SECONDS);
-    //assertNotNull(out);
-    //assertEquals("nonblock", out);
-    assertNull(mRabbitTemplate.receive(Application.RESPONSE_TAB_QUEUE));
-
   }
 
+  @Test
+  public void testInvalidJson() throws InterruptedException {
+    final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
+    Person person = new Person(1l,"+447428171589");
+    new Expectations(logger) {{
+      logger.error("Invalid input");
+      times = 1;
+    }};
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, person);
+  }
+
+
+  @Test
+  public void testDuplicateIDInput() throws InterruptedException {
+    final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
+    Person person = new Person(1l,"+447428171589");
+    Person person2 = new Person(1l,"+35988611153");
+    PersonWrapper personWrapper = new PersonWrapper();
+    personWrapper.getPeople().add(person);
+    personWrapper.getPeople().add(person2);
+    new Expectations(logger) {{
+      logger.error("Non unique ids");
+      times = 1;
+    }};
+    PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
+  }
 
 }

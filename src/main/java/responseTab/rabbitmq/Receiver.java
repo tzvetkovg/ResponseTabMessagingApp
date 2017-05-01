@@ -41,10 +41,10 @@ public class Receiver {
 
   @RabbitListener(queues = Application.RESPONSE_TAB_QUEUE)
   public PersonWrapper receiveMessage(@Payload PersonWrapper aPersonWrapper, @Header(AmqpHeaders.CHANNEL) Channel aChannel,
-          @Header(AmqpHeaders.DELIVERY_TAG) Long aDeliveryTag) throws IOException, TimeoutException {
+          @Header(AmqpHeaders.DELIVERY_TAG) Long aDeliveryTag) throws IOException {
 
     if (!isValid(aPersonWrapper)) {
-      throw new AmqpRejectAndDontRequeueException("non object unique ids");
+      throw new AmqpRejectAndDontRequeueException("non unique ids in object");
     }
     Map<Integer, List<Person>> peopleGroupedByCountryTelCode = aPersonWrapper.getPeople().stream().collect(Collectors.groupingBy(this::processItem));
     printResult(peopleGroupedByCountryTelCode);
@@ -64,9 +64,8 @@ public class Receiver {
     try {
       return mPhoneNumberUtil.parse(aPerson.getTelephoneNumber(), "").getCountryCode();
     } catch (NumberParseException numberParseEx) {
-      numberParseEx.printStackTrace();
+      throw new InvalidInputException("Invalid data format");
     }
-    return null;
   }
 
   private boolean isValid(PersonWrapper aPersonWrapper) {

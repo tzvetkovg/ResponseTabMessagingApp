@@ -17,13 +17,25 @@ public class RabbitErrorHandler  implements ErrorHandler {
   public void handleError(Throwable aThrowable) {
     if (aThrowable.getCause() instanceof AmqpRejectAndDontRequeueException) {
       ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
+      log.error("Non unique ids");
       log.error("Failed to process inbound message from queue "
               + lefe.getFailedMessage().getMessageProperties().getConsumerQueue()
               + "; failed message: " + lefe.getFailedMessage(), aThrowable);
     }
     else if (aThrowable.getCause() instanceof MessageConversionException) {
       ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
-      log.error("Invalid json object sent", aThrowable);
+      log.error("Invalid json input");
+      log.error("Not a valid json object", aThrowable);
+    }
+    else if(aThrowable.getCause() instanceof InvalidInputException){
+      ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
+      log.error("Invalid data format");
+      log.error(aThrowable.getMessage(), aThrowable);
+    }
+    else if(aThrowable.getCause() instanceof NullPointerException){
+      ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
+      log.error("nullPointerException");
+      log.error(aThrowable.getMessage(), aThrowable);
     }
     else if(!(aThrowable.getCause() instanceof ReplyFailureException)){
       ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
