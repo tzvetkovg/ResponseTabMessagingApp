@@ -99,8 +99,8 @@ public class ApplicationTest {
   @Test
   public void testInvalidTelephoneFormat() throws Exception {
     final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
-    Person person = new Person(null,"+447428171589");
-    Person person2 = new Person(2l,"+35988611153");
+    Person person = new Person(1l,"447428171589");
+    Person person2 = new Person(2l,"35988611153");
     PersonWrapper personWrapper = new PersonWrapper();
     personWrapper.getPeople().add(person);
     personWrapper.getPeople().add(person2);
@@ -127,7 +127,7 @@ public class ApplicationTest {
     final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
     Person person = new Person(1l,"+447428171589");
     new Expectations(logger) {{
-      logger.error("Invalid input");
+      logger.error("Invalid json input");
       times = 1;
     }};
     PersonWrapper out = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, person);
