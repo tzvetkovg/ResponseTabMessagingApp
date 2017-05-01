@@ -27,7 +27,7 @@ import responseTab.rabbitmq.RabbitErrorHandler;
 
 @SpringBootApplication
 @EnableRabbit
-public class Application implements RabbitListenerConfigurer { //implements RabbitListenerConfigurer
+public class Application implements RabbitListenerConfigurer {
 
   public final static String RESPONSE_TAB_QUEUE = "RESPONSE_TAB_QUEUE";
   public final static String RESPONSE_TAB_ROUTING_KEY = "RESPONSE_TAB_ROUTING_KEY";
@@ -91,12 +91,12 @@ public class Application implements RabbitListenerConfigurer { //implements Rabb
     return PhoneNumberUtil.getInstance();
   }
 
-  public static void main(String[] args) throws InterruptedException {
-    SpringApplication.run(Application.class, args);
-  }
-
   @Override
   public void configureRabbitListeners(RabbitListenerEndpointRegistrar aRabbitListenerEndpointRegistrar) {
     aRabbitListenerEndpointRegistrar.setMessageHandlerMethodFactory(myHandlerMethodFactory());
+  }
+
+  public static void main(String[] args) throws InterruptedException {
+    SpringApplication.run(Application.class, args);
   }
 }
