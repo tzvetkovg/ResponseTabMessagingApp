@@ -30,7 +30,7 @@ public class RabbitErrorHandler  implements ErrorHandler {
     else if(aThrowable.getCause() instanceof InvalidInputException){
       ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;
       log.error("Invalid data format");
-      log.error(aThrowable.getMessage(), aThrowable);
+      log.error("Invalid data format", aThrowable);
     }
     else if(aThrowable.getCause() instanceof NullPointerException){
       ListenerExecutionFailedException lefe = (ListenerExecutionFailedException) aThrowable;

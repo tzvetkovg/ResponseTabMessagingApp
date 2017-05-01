@@ -5,6 +5,7 @@ package responseTab;
 import mockit.Expectations;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.amqp.core.AmqpMessageReturnedException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 @RunWith(SpringRunner.class)
@@ -53,14 +55,17 @@ public class ApplicationTest {
 
   @Test
   public void testInvalidTelephoneFormat() throws Exception {
+    final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger( RabbitErrorHandler.class );
     Person person = new Person(1l,"447428171589");
     Person person2 = new Person(2l,"35988611153");
     PersonWrapper personWrapper = new PersonWrapper();
     personWrapper.getPeople().add(person);
     personWrapper.getPeople().add(person2);
+    new Expectations(logger) {{
+      logger.error("Invalid data format");
+      times = 1;
+    }};
     PersonWrapper result = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
-    mReceiver.getLatch().await(10, TimeUnit.SECONDS);
-    assertEquals(null,result);
   }
 
   @Test
@@ -69,8 +74,7 @@ public class ApplicationTest {
     PersonWrapper personWrapper = new PersonWrapper();
     personWrapper.getPeople().add(person);
     PersonWrapper result = (PersonWrapper) mRabbitTemplate.convertSendAndReceive(Application.RESPONSE_TAB_EXCHANGE,Application.RESPONSE_TAB_ROUTING_KEY, personWrapper);
-    assertEquals(null,personWrapper.getPeople().get(0).getId());
-    mReceiver.getLatch().await(10, TimeUnit.SECONDS);
+    assertEquals(null,result.getPeople().get(0).getId());
   }
 
   @Test
@@ -117,7 +121,8 @@ public class ApplicationTest {
       message.getMessageProperties().setContentType("application/json");
       return message;
     });
-    assertTrue(null,true);
+    assertTrue(null,result != null);
+    assertEquals(person.getId(),result.getPeople().get(0).getId());
   }
 
 }
